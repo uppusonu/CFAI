@@ -1,0 +1,138 @@
+"""
+Automated Interview Slot Scheduler
+Generates interview slots based on date range,
+working hours, and slot duration.
+"""
+
+from datetime import datetime, timedelta
+
+
+def generate_slots(start_date, end_date, start_time,
+                   end_time, slot_minutes,
+                   skip_weekends=True):
+
+    slots = []
+    current_date = start_date
+
+    while current_date <= end_date:
+
+        # Skip Saturday and Sunday
+        if skip_weekends and current_date.weekday() >= 5:
+            current_date += timedelta(days=1)
+            continue
+
+        slot_start = datetime.combine(current_date, start_time)
+        day_end = datetime.combine(current_date, end_time)
+
+        while slot_start + timedelta(minutes=slot_minutes) <= day_end:
+            slot_end = slot_start + timedelta(minutes=slot_minutes)
+            slots.append((slot_start, slot_end))
+            slot_start = slot_end
+
+        current_date += timedelta(days=1)
+
+    return slots
+
+
+def main():
+
+    print("=" * 50)
+    print("     AUTOMATED INTERVIEW SLOT SCHEDULER")
+    print("=" * 50)
+
+    try:
+        # Date Inputs
+        start_date_str = input(
+            "\nEnter Start Date (YYYY-MM-DD): "
+        ).strip()
+
+        end_date_str = input(
+            "Enter End Date (YYYY-MM-DD): "
+        ).strip()
+
+        start_date = datetime.strptime(
+            start_date_str,
+            "%Y-%m-%d"
+        ).date()
+
+        end_date = datetime.strptime(
+            end_date_str,
+            "%Y-%m-%d"
+        ).date()
+
+        if start_date > end_date:
+            print("\nERROR: Start date cannot be after end date.")
+            return
+
+        # Time Inputs
+        start_time_str = input(
+            "Enter Daily Start Time (HH:MM): "
+        ).strip()
+
+        end_time_str = input(
+            "Enter Daily End Time (HH:MM): "
+        ).strip()
+
+        start_time = datetime.strptime(
+            start_time_str,
+            "%H:%M"
+        ).time()
+
+        end_time = datetime.strptime(
+            end_time_str,
+            "%H:%M"
+        ).time()
+
+        if start_time >= end_time:
+            print("\nERROR: End time must be later than start time.")
+            return
+
+        # Slot Duration
+        slot_minutes = int(
+            input("Enter Slot Duration (minutes): ").strip()
+        )
+
+        if slot_minutes <= 0:
+            print("\nERROR: Slot duration must be greater than 0.")
+            return
+
+        # Generate Slots
+        slots = generate_slots(
+            start_date,
+            end_date,
+            start_time,
+            end_time,
+            slot_minutes
+        )
+
+        if not slots:
+            print("\nNo slots generated.")
+            return
+
+        # Display Results
+        print("\n" + "=" * 50)
+        print(f"TOTAL SLOTS GENERATED: {len(slots)}")
+        print("=" * 50)
+
+        for i, (start, end) in enumerate(slots, start=1):
+            print(
+                f"{i}. "
+                f"{start.strftime('%Y-%m-%d (%A) %H:%M')} "
+                f"-> "
+                f"{end.strftime('%H:%M')}"
+            )
+
+    except ValueError:
+        print(
+            "\nERROR: Invalid input format.\n"
+            "Date format: YYYY-MM-DD\n"
+            "Time format: HH:MM\n"
+            "Slot duration: Integer"
+        )
+
+    except Exception as e:
+        print(f"\nUnexpected Error: {e}")
+
+
+if name == "main":
+    main()
